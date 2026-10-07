@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "GitChangesReviewer": {
+      "commandName": "Project"
+      //"commandLineArgs": "\"C:\\Projects\\Common Tools\\GIT\""
+    }
+  }
+}
