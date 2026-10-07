@@ -11,7 +11,7 @@ namespace GitChangesReviewer.Services
             var fullDiff = new StringBuilder();
 
             // 1. Получаем изменения в отслеживаемых файлах (tracked)
-            var trackedDiff = RunGitCommand(repoPath, "diff HEAD");
+            var trackedDiff = await RunGitCommand(repoPath, "diff HEAD");
             if (!string.IsNullOrWhiteSpace(trackedDiff))
             {
                 fullDiff.AppendLine("=== ИЗМЕНЕНИЯ В СУЩЕСТВУЮЩИХ ФАЙЛАХ ===");
@@ -19,7 +19,7 @@ namespace GitChangesReviewer.Services
             }
 
             // 2. Получаем список новых, неотслеживаемых файлов (untracked)
-            var untrackedFilesList = RunGitCommand(repoPath, "ls-files --others --exclude-standard");
+            var untrackedFilesList = await RunGitCommand(repoPath, "ls-files --others --exclude-standard");
 
             if (!string.IsNullOrWhiteSpace(untrackedFilesList))
             {
@@ -44,7 +44,7 @@ namespace GitChangesReviewer.Services
             return fullDiff.ToString();
         }
 
-        private static string RunGitCommand(string workingDir, string arguments)
+        private static async Task<string> RunGitCommand(string workingDir, string arguments)
         {
             var processInfo = new ProcessStartInfo
             {
@@ -55,12 +55,36 @@ namespace GitChangesReviewer.Services
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8
+                StandardOutputEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8
             };
 
             using var process = Process.Start(processInfo);
-            var output = process!.StandardOutput.ReadToEnd();
-            process.WaitForExit();
+            if (process == null)
+                throw new InvalidOperationException("Не удалось запустить процесс git.");
+
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+
+            await process.WaitForExitAsync();
+
+            await Task.WhenAll(outputTask, errorTask);
+
+            var output = await outputTask;
+            var error = await errorTask;
+
+            if (process.ExitCode != 0)
+            {
+                var msg = error;
+
+                if (string.IsNullOrEmpty(msg))
+                    msg = "Не удалось выполнить команду git. Exit code: " + process.ExitCode;
+                else if (msg.StartsWith("warning:"))
+                    msg = msg.Split('\n', StringSplitOptions.RemoveEmptyEntries)[0];
+
+                throw new InvalidOperationException(msg);
+            }
+
             return output;
         }
 
