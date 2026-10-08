@@ -15,6 +15,7 @@
 
     <Window.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:TimeSpanToStringConverter x:Key="TimeSpanToStringConverter"/>
     </Window.Resources>
     <b:Interaction.Triggers>
         <b:EventTrigger EventName="Loaded">
@@ -56,7 +57,21 @@
                              HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"></TextBox>
                 </TabItem>
                 <TabItem Header="Ревью">
-                    <wv2:WebView2  helpers:WebView2Helper.HtmlContent="{Binding ReviewHtml}"></wv2:WebView2>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"></RowDefinition>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <wv2:WebView2  Margin="0,0,0,10"
+                            helpers:WebView2Helper.HtmlContent="{Binding ReviewHtml}"></wv2:WebView2>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal">
+                            <TextBlock>Время:</TextBlock>
+                            <TextBlock Margin="5,0,0,0" 
+                                Text="{Binding TotalTime, Converter={StaticResource TimeSpanToStringConverter}}"></TextBlock>
+                            <TextBlock Margin="10,0,0,0">Токены:</TextBlock>
+                            <TextBlock Margin="5,0,0,0" Text="{Binding TotalCount}"></TextBlock>
+                        </StackPanel>
+                    </Grid>
                 </TabItem>
             </TabControl>
         </Grid>

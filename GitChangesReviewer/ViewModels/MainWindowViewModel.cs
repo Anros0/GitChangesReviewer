@@ -33,6 +33,30 @@ namespace GitChangesReviewer.ViewModels
         public AsyncCommand StartReviewCommand { get; }
         public AsyncCommand LoadedCommand { get; }
 
+        public TimeSpan? TotalTime
+        {
+            get;
+            set
+            {
+                if (value == field) return;
+                field = value;
+                OnPropertyChanged();
+                StartReviewCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public int TotalCount
+        {
+            get;
+            set
+            {
+                if (value == field) return;
+                field = value;
+                OnPropertyChanged();
+                StartReviewCommand.RaiseCanExecuteChanged();
+            }
+        }
+
         public string Folder
         {
             get;
@@ -118,6 +142,8 @@ namespace GitChangesReviewer.ViewModels
         private async Task StartReview()
         {
             SelectedTabIndex = 0;
+            TotalCount = 0;
+            TotalTime = null;
 
             ReviewHtml = "";
             Changes = await _gitService.GetChangesAsync(Folder);
@@ -128,11 +154,13 @@ namespace GitChangesReviewer.ViewModels
                 return;
             }
 
-            var review = await _aiService.SendToAiAsync(Changes, SelectedModel);
+            var aiResponse = await _aiService.SendToAiAsync(Changes, SelectedModel);
 
             var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
-            ReviewHtml = Markdown.ToHtml(review, pipeline);
+            ReviewHtml = Markdown.ToHtml(aiResponse.Message.Content, pipeline);
+            TotalTime = aiResponse.TotalTime;
+            TotalCount = aiResponse.TotalCount;
 
             SelectedTabIndex = 1;
         }
