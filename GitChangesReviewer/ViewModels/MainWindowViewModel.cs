@@ -27,7 +27,6 @@ namespace GitChangesReviewer.ViewModels
             StartReviewCommand = GetAsyncCommand(StartReview, canExecute: CanStartReview);
             GetChangesCommand = GetAsyncCommand(GetChanges, canExecute: CanGetChanges);
             LoadedCommand = GetAsyncCommand(InitAsync);
-            CopyChangesCommand = new DelegateCommand(CopyChanges, CanStartReview);
 
             Models = appSettings.Models;
             SelectedModel = Models.FirstOrDefault();
@@ -37,8 +36,6 @@ namespace GitChangesReviewer.ViewModels
         public AsyncCommand StartReviewCommand { get; }
         public AsyncCommand GetChangesCommand { get; }
         public AsyncCommand LoadedCommand { get; }
-
-        public DelegateCommand CopyChangesCommand { get; }
 
         public TimeSpan? TotalTime
         {
@@ -155,6 +152,9 @@ namespace GitChangesReviewer.ViewModels
 
             if (string.IsNullOrWhiteSpace(Changes))
                 Changes = NO_CHANGES;
+            else
+                CopyChanges();
+
         }
 
         private async Task StartReview()

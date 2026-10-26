@@ -59,7 +59,6 @@
                     <Button Margin="10,0,0,0"
                             Command="{Binding StartReviewCommand}">Start Review</Button>
                 </StackPanel>
-                <Button Grid.Column="2" Height="20" Width="60" Command="{Binding CopyChangesCommand}">Copy</Button>
             </Grid>
             <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTabIndex}">
                 <TabItem Header="Изменения">
